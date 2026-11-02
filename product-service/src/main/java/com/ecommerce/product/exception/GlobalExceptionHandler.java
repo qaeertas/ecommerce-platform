@@ -12,10 +12,10 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(ProductNotFoundException.class)
+    @ExceptionHandler({ProductNotFoundException.class, CategoryNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleProductNotFoundException(ProductNotFoundException ex) {
-            return Map.of("error", ex.getMessage());
+    public Map<String, String> handleNotFoundException(RuntimeException ex) {
+            return Map.of("404 Not Found", ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
