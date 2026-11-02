@@ -46,6 +46,10 @@ public class ProductService {
         return productMapper.toResponse(productRepository.save(product));
     }
 
+    public List<ProductResponse> getProductsByCategoryId(Long categoryId) {
+        return productRepository.findByCategoryId(categoryId).stream().map(productMapper::toResponse).toList();
+    }
+
     private Product getProductByIdOrThrow(Long id) {
         return productRepository
                 .findById(id)
