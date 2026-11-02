@@ -1,6 +1,7 @@
 package com.ecommerce.product.controller;
 
-import com.ecommerce.product.model.Product;
+import com.ecommerce.product.dto.ProductRequest;
+import com.ecommerce.product.dto.ProductResponse;
 import com.ecommerce.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -14,17 +15,17 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    public Product createProduct(@RequestBody Product product) {
+    public ProductResponse createProduct(@RequestBody ProductRequest product) {
         return productService.createProduct(product);
     }
     
     @GetMapping
-    public List<Product> getAllProducts() {
+    public List<ProductResponse> getAllProducts() {
         return productService.getAllProducts();  
     }
 
     @GetMapping("/{id}")
-    public Product getProductById(@PathVariable  Long id) {
+    public ProductResponse getProductById(@PathVariable  Long id) {
         return productService.getProductById(id);
     }
 
@@ -34,7 +35,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public Product updateProduct(@PathVariable Long id, @RequestBody Product product) {
+    public ProductResponse updateProduct(@PathVariable Long id, @RequestBody ProductRequest product) {
         return productService.updateProduct(id, product);
     }
 }
