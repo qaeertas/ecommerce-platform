@@ -10,6 +10,18 @@ services:
       - "5432:5432"
     volumes:
       - postgres_product_data:/var/lib/postgresql/data
+  postgres-cart:
+    image: postgres:16-alpine
+    container_name: postgres-cart
+    environment:
+      POSTGRES_DB: cart_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_cart_data:/var/lib/postgresql/data
 
 volumes:
   postgres_product_data:
+  postgres_cart_data:
