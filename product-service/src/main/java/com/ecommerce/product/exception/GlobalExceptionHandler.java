@@ -15,7 +15,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({ProductNotFoundException.class, CategoryNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleNotFoundException(RuntimeException ex) {
-            return Map.of("404 Not Found", ex.getMessage());
+        return Map.of("404 Not Found", ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -24,5 +24,17 @@ public class GlobalExceptionHandler {
         Map<String, String> errors = new HashMap<>();
         ex.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
         return errors;
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleInsufficientStockException(InsufficientStockException ex) {
+        return Map.of("error", ex.getMessage());
+    }
+
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleConstraintViolationException(jakarta.validation.ConstraintViolationException ex) {
+        return Map.of("error", ex.getMessage());
     }
 }

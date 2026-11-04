@@ -4,7 +4,10 @@ import com.ecommerce.product.dto.ProductRequest;
 import com.ecommerce.product.dto.ProductResponse;
 import com.ecommerce.product.service.ProductService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
+@Validated
 public class ProductController {
     private final ProductService productService;
 
@@ -41,5 +45,13 @@ public class ProductController {
     @PutMapping("/{id}")
     public ProductResponse updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequest product) {
         return productService.updateProduct(id, product);
+    }
+
+    @PutMapping("/{id}/reduce-stock")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reduceStock(
+            @PathVariable Long id,
+            @RequestParam @Positive(message = "Quantity must be positive") Integer quantity) {
+        productService.reduceStock(id, quantity);
     }
 }

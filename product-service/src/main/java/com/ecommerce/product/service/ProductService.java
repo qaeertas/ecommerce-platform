@@ -3,6 +3,7 @@ package com.ecommerce.product.service;
 import com.ecommerce.product.dto.ProductRequest;
 import com.ecommerce.product.dto.ProductResponse;
 import com.ecommerce.product.exception.CategoryNotFoundException;
+import com.ecommerce.product.exception.InsufficientStockException;
 import com.ecommerce.product.exception.ProductNotFoundException;
 import com.ecommerce.product.mapper.ProductMapper;
 import com.ecommerce.product.model.Category;
@@ -11,6 +12,7 @@ import com.ecommerce.product.repository.CategoryRepository;
 import com.ecommerce.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -48,6 +50,18 @@ public class ProductService {
 
     public List<ProductResponse> getProductsByCategoryId(Long categoryId) {
         return productRepository.findByCategoryId(categoryId).stream().map(productMapper::toResponse).toList();
+    }
+
+    @Transactional
+    public void reduceStock(Long id, Integer quantity) {
+        Product product = getProductByIdOrThrow(id);
+        Integer stockQuantity = product.getStockQuantity();
+        if (stockQuantity < quantity) {
+            throw new InsufficientStockException(
+                    "Insufficient stock for product id: " + id +
+                            ". Available: " + stockQuantity + ", requested: " + quantity);
+        }
+        product.setStockQuantity(stockQuantity - quantity);
     }
 
     private Product getProductByIdOrThrow(Long id) {
