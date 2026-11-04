@@ -5,7 +5,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,9 +26,9 @@ public class GlobalExceptionHandler {
         return errors;
     }
 
-    @ExceptionHandler(ProductNotFoundException.class)
+    @ExceptionHandler(HttpClientErrorException.NotFound.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleProductNotFoundException(RestClientResponseException ex) {
-        return Map.of("error", ex.getMessage());
+    public Map<String, String> handleProductNotFoundException() {
+        return Map.of("error", "Product not found");
     }
 }

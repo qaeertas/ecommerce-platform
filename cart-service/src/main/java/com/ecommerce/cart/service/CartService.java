@@ -26,11 +26,7 @@ public class CartService {
 
     @Transactional(readOnly = true)
     public CartResponse getCartByUserId(Long userId) {
-        Cart cart = cartRepository.findByUserId(userId).orElseGet(() -> {
-            Cart newCart = new Cart();
-            newCart.setUserId(userId);
-            return newCart;
-        });
+        Cart cart = getOrCreateCart(userId);
         return mapToCartResponse(cart);
     }
 
@@ -38,28 +34,21 @@ public class CartService {
     public CartResponse addItemToCart(Long userId, CartItemRequest request) {
         ProductResponse product = productClient.getProductById(request.productId());
 
-        if (product.stockQuantity() < request.quantity()) {
-            throw new InsufficientStockException("Not enough stock for product: " + product.name());
-        }
-
-        Cart cart = cartRepository.findByUserId(userId).orElseGet(() -> {
-            Cart newCart = new Cart();
-            newCart.setUserId(userId);
-            return newCart;
-        });
+       Cart cart = getOrCreateCart(userId);
 
         Optional<CartItem> existingItem = cart.getItems().stream()
                 .filter(item -> item.getProductId().equals(request.productId()))
                 .findFirst();
 
+        int currentQuantity = existingItem.map(CartItem::getQuantity).orElse(0);
+        int totalQuantity = currentQuantity + request.quantity();
+
+        if (totalQuantity > product.stockQuantity()) {
+            throw new InsufficientStockException("Not enough stock for product: " + product.name());
+        }
+
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
-
-            Integer totalQuantity = item.getQuantity() + request.quantity();
-            if (totalQuantity > product.stockQuantity()) {
-                throw new InsufficientStockException("Not enough stock for product: " + product.name());
-            }
-
             item.setQuantity(totalQuantity);
         } else {
             CartItem newItem = new CartItem();
@@ -71,6 +60,27 @@ public class CartService {
 
         cartRepository.save(cart);
         return mapToCartResponse(cart);
+    }
+
+    @Transactional
+    public CartResponse removeItemFromCart(Long userId, Long productId) {
+        Cart cart = getOrCreateCart(userId);
+        cart.getItems().removeIf(item -> item.getProductId().equals(productId));
+        return mapToCartResponse(cart);
+    }
+
+    @Transactional
+    public void clearCart(Long userId) {
+        Cart cart = getOrCreateCart(userId);
+        cart.getItems().clear();
+    }
+
+    private Cart getOrCreateCart(Long userId) {
+        return cartRepository.findByUserId(userId).orElseGet(() -> {
+            Cart newCart = new Cart();
+            newCart.setUserId(userId);
+            return newCart;
+        });
     }
 
     private CartResponse mapToCartResponse(Cart cart) {
