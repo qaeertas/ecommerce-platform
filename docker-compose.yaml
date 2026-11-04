@@ -21,7 +21,19 @@ services:
       - "5433:5432"
     volumes:
       - postgres_cart_data:/var/lib/postgresql/data
+  postgres-order:
+    image: postgres:16-alpine
+    container_name: postgres-order
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_order_data:/var/lib/postgresql/data
 
 volumes:
   postgres_product_data:
   postgres_cart_data:
+  postgres_order_data:
