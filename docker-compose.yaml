@@ -1,4 +1,5 @@
 services:
+  # ==================== DATABASES ====================
   postgres-product:
     image: postgres:16-alpine
     container_name: postgres-product
@@ -10,6 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_product_data:/var/lib/postgresql/data
+
   postgres-cart:
     image: postgres:16-alpine
     container_name: postgres-cart
@@ -21,6 +23,7 @@ services:
       - "5433:5432"
     volumes:
       - postgres_cart_data:/var/lib/postgresql/data
+
   postgres-order:
     image: postgres:16-alpine
     container_name: postgres-order
@@ -32,6 +35,67 @@ services:
       - "5434:5432"
     volumes:
       - postgres_order_data:/var/lib/postgresql/data
+
+  # ==================== MICROSERVICES ====================
+  product-service:
+    build: ./product-service
+    container_name: product-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/product_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    depends_on:
+      - postgres-product
+    restart: on-failure
+
+  cart-service:
+    build: ./cart-service
+    container_name: cart-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-cart:5432/cart_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      PRODUCT_SERVICE_URL: http://product-service:8081
+    depends_on:
+      - postgres-cart
+      - product-service
+    restart: on-failure
+
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/order_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      PRODUCT_SERVICE_URL: http://product-service:8081
+      CART_SERVICE_URL: http://cart-service:8082
+    depends_on:
+      - postgres-order
+      - product-service
+      - cart-service
+    restart: on-failure
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      PRODUCT_SERVICE_URL: http://product-service:8081
+      CART_SERVICE_URL: http://cart-service:8082
+      ORDER_SERVICE_URL: http://order-service:8083
+    depends_on:
+      - product-service
+      - cart-service
+      - order-service
+    restart: on-failure
 
 volumes:
   postgres_product_data:
